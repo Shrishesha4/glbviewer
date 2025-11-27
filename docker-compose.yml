@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  glb-viewer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: glb-viewer:latest
+    container_name: glb-viewer
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount a local directory to store models
+      - ./models:/app/public/models:ro
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

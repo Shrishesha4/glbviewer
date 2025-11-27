@@ -1,0 +1,4 @@
+# Place your GLB and GLTF 2.0 model files here
+
+This directory stores the 3D models that will be displayed in the viewer.
+Any `.glb` or `.gltf` files placed here will be available to view in the application.
