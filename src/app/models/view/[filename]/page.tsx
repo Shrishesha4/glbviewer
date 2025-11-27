@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
-// Dynamically import GLBViewer to avoid SSR issues with Three.js
 const GLBViewer = dynamic(() => import('@/components/GLBViewer'), {
   ssr: false,
   loading: () => (

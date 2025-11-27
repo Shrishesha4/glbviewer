@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
       name: file,
       path: `/models/${file}`,
       url: `/api/models/${encodeURIComponent(file)}`,
-      viewUrl: `/view/${encodeURIComponent(file)}`,
-      viewerUrl: `/viewer/${encodeURIComponent(file)}`
+      viewUrl: `/models/view/${encodeURIComponent(file)}`,
+      viewerUrl: `/models/viewer/${encodeURIComponent(file)}`
     }));
 
     console.log('Returning models:', models.length);

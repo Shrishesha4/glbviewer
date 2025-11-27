@@ -14,20 +14,36 @@ export default function Home() {
       <p style={{ fontSize: '1.2rem', marginBottom: '2rem', color: '#666' }}>
         View and explore 3D models in GLB/GLTF 2.0 format
       </p>
-      <Link 
-        href="/explore" 
-        style={{ 
-          padding: '1rem 2rem', 
-          background: '#0070f3', 
-          color: 'white', 
-          borderRadius: '8px',
-          fontSize: '1.1rem',
-          fontWeight: '500',
-          transition: 'background 0.2s'
-        }}
-      >
-        Explore Models
-      </Link>
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <Link 
+          href="/models/explore" 
+          style={{ 
+            padding: '1rem 2rem', 
+            background: '#0070f3', 
+            color: 'white', 
+            borderRadius: '8px',
+            fontSize: '1.1rem',
+            fontWeight: '500',
+            transition: 'background 0.2s'
+          }}
+        >
+          Explore Models
+        </Link>
+        <Link
+          href="/media/explore"
+          style={{
+            padding: '1rem 2rem',
+            background: '#111827',
+            color: 'white',
+            borderRadius: '8px',
+            fontSize: '1.1rem',
+            fontWeight: '500',
+            transition: 'background 0.2s'
+          }}
+        >
+          Explore Media
+        </Link>
+      </div>
     </main>
   );
 }

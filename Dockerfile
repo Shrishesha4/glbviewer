@@ -34,8 +34,9 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Create public and models directories with proper permissions
-RUN mkdir -p /app/public/models && chown -R nextjs:nodejs /app/public
+# Create public directories for media files with proper permissions
+RUN mkdir -p /app/public/models /app/public/images /app/public/videos && \
+	chown -R nextjs:nodejs /app/public
 
 USER nextjs
 

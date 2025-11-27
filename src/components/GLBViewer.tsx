@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, useGLTF, Center, PerspectiveCamera, Html } from '@react-three/drei';
+import { OrbitControls, Environment, useGLTF, Center, PerspectiveCamera, Html, Bounds } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface ModelProps {
@@ -178,7 +178,9 @@ export default function GLBViewer({ modelUrl }: GLBViewerProps) {
         
         {/* Model */}
         <Suspense fallback={<Loader />}>
-          <Model url={modelUrl} isMobile={isMobile} />
+          <Bounds fit clip observe margin={1.2}>
+            <Model url={modelUrl} isMobile={isMobile} />
+          </Bounds>
           {!isMobile && <Environment preset="sunset" />}
           {isMobile && <Environment preset="city" environmentIntensity={0.5} />}
         </Suspense>
@@ -196,6 +198,7 @@ export default function GLBViewer({ modelUrl }: GLBViewerProps) {
             ONE: THREE.TOUCH.ROTATE,
             TWO: THREE.TOUCH.DOLLY_PAN
           }}
+          makeDefault
         />
       </Canvas>
       <style jsx global>{`

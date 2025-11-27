@@ -8,9 +8,10 @@ interface Model {
   path: string;
   url: string;
   viewUrl: string;
+  viewerUrl?: string;
 }
 
-export default function ExplorePage() {
+export default function ModelsExplorePage() {
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +19,13 @@ export default function ExplorePage() {
   const [uploadUrl, setUploadUrl] = useState('');
   const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogout = async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    window.location.href = '/';
+  };
 
   const loadModels = () => {
     setLoading(true);
@@ -107,6 +114,49 @@ export default function ExplorePage() {
     }
   };
 
+  const handleDelete = async (filename: string) => {
+    const apiKey = typeof window !== 'undefined' ? localStorage.getItem('uploadApiKey') : null;
+    
+    // Check if API key is set
+    if (!apiKey || !apiKey.trim()) {
+      setUploadMessage({ 
+        type: 'error', 
+        text: '✗ API Key required. Set it in localStorage as "uploadApiKey" or configure in Media Explorer.' 
+      });
+      setTimeout(() => setUploadMessage(null), 5000);
+      return;
+    }
+
+    if (!confirm(`Delete ${filename}?\n\nThis action cannot be undone.`)) return;
+
+    setDeleting(filename);
+    try {
+      const headers: Record<string, string> = {};
+      if (apiKey) headers['X-API-Key'] = apiKey;
+
+      const response = await fetch(`/api/models/${encodeURIComponent(filename)}`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUploadMessage({ type: 'success', text: `✓ ${filename} deleted` });
+        loadModels();
+        setTimeout(() => setUploadMessage(null), 3000);
+      } else {
+        setUploadMessage({ type: 'error', text: `✗ ${data.error || 'Delete failed'}` });
+        setTimeout(() => setUploadMessage(null), 5000);
+      }
+    } catch (err) {
+      setUploadMessage({ type: 'error', text: `✗ Failed to delete ${filename}` });
+      setTimeout(() => setUploadMessage(null), 5000);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ 
@@ -146,9 +196,25 @@ export default function ExplorePage() {
       margin: '0 auto'
     }}>
       <div style={{ marginBottom: '2rem' }}>
-        <Link href="/" style={{ color: '#0070f3', fontSize: '0.9rem' }}>
-          ← Back to Home
-        </Link>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Link href="/" style={{ color: '#0070f3', fontSize: '0.9rem' }}>
+            ← Back to Home
+          </Link>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '0.5rem 1rem',
+              background: '#f5f5f5',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              color: '#666'
+            }}
+          >
+            🚪 Logout
+          </button>
+        </div>
       </div>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
@@ -301,57 +367,71 @@ export default function ExplorePage() {
           marginBottom: '2rem'
         }}>
           {models.map((model) => (
-            <Link
+            <div
               key={model.name}
-              href={model.viewUrl}
               style={{
-                display: 'block',
                 padding: '1.5rem',
                 background: 'white',
                 borderRadius: '12px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 transition: 'all 0.2s ease',
-                textDecoration: 'none',
-                color: 'inherit'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                position: 'relative'
               }}
             >
-              <div style={{
-                width: '100%',
-                height: '160px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '8px',
-                marginBottom: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '3rem'
-              }}>
-                🎲
-              </div>
-              <h3 style={{ 
-                fontSize: '1.1rem', 
-                marginBottom: '0.5rem',
-                wordBreak: 'break-word'
-              }}>
-                {model.name}
-              </h3>
-              <p style={{ 
-                fontSize: '0.9rem', 
-                color: '#666',
-                margin: 0
-              }}>
-                Click to view
-              </p>
-            </Link>
+              <Link href={model.viewUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{
+                  width: '100%',
+                  height: '160px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '3rem'
+                }}>
+                  🎲
+                </div>
+                <h3 style={{ 
+                  fontSize: '1.1rem', 
+                  marginBottom: '0.5rem',
+                  wordBreak: 'break-word'
+                }}>
+                  {model.name}
+                </h3>
+                <p style={{ 
+                  fontSize: '0.9rem', 
+                  color: '#666',
+                  margin: 0
+                }}>
+                  Click to view
+                </p>
+              </Link>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(model.name);
+                }}
+                disabled={deleting === model.name}
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  right: '1rem',
+                  padding: '0.5rem 0.75rem',
+                  background: deleting === model.name ? '#ccc' : '#ff4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: deleting === model.name ? 'not-allowed' : 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: '500',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}
+              >
+                {deleting === model.name ? 'Deleting...' : '🗑️ Delete'}
+              </button>
+            </div>
           ))}
         </div>
       )}
