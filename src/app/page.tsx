@@ -43,6 +43,20 @@ export default function Home() {
         >
           Explore Media
         </Link>
+        <Link
+          href="/cdn-api"
+          style={{
+            padding: '1rem 2rem',
+            background: '#4a5568',
+            color: 'white',
+            borderRadius: '8px',
+            fontSize: '1.1rem',
+            fontWeight: '500',
+            transition: 'background 0.2s'
+          }}
+        >
+          CDN API Docs
+        </Link>
       </div>
     </main>
   );

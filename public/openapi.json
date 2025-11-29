@@ -1,0 +1,300 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "GLB Viewer and Media CDN API",
+    "version": "1.0.8",
+    "description": "API for uploading, managing, and viewing 3D models (GLB/GLTF) and media (images/videos)."
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "Local API server"
+    }
+  ],
+  "paths": {
+    "/models": {
+      "get": {
+        "summary": "List all 3D models",
+        "operationId": "listModels",
+        "responses": {
+          "200": {
+            "description": "A list of models.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "path": { "type": "string" },
+                      "url": { "type": "string" },
+                      "viewUrl": { "type": "string" },
+                      "viewerUrl": { "type": "string" },
+                      "size": { "type": "number" },
+                      "modified": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/upload": {
+      "post": {
+        "summary": "Upload a 3D model",
+        "operationId": "uploadModel",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string", "format": "uri" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Model uploaded successfully." },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/models/{filename}": {
+      "get": {
+        "summary": "Get a specific model",
+        "operationId": "getModel",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Model file.",
+            "content": {
+              "model/gltf-binary": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a model",
+        "operationId": "deleteModel",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Model deleted successfully." },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/media": {
+      "get": {
+        "summary": "List all media",
+        "operationId": "listMedia",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["images", "videos"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of media.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "media": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": { "type": "string" },
+                          "type": { "type": "string", "enum": ["image", "video"] },
+                          "path": { "type": "string" },
+                          "url": { "type": "string" },
+                          "viewUrl": { "type": "string" },
+                          "size": { "type": "number" },
+                          "modified": { "type": "string", "format": "date-time" }
+                        }
+                      }
+                    },
+                    "types": {
+                      "type": "object",
+                      "properties": {
+                        "images": { "type": "number" },
+                        "videos": { "type": "number" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/media/upload": {
+      "post": {
+        "summary": "Upload a media file",
+        "operationId": "uploadMedia",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["image", "video"]
+                  }
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "type": {
+                    "type": "string",
+                    "enum": ["image", "video"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Media uploaded successfully." },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/media/{type}/{filename}": {
+      "get": {
+        "summary": "Get a specific media file",
+        "description": "Media files are served as static assets. The URL can be constructed directly. For example: `/{type}/{filename}`. The `GET /media` endpoint returns the direct URL for each asset.",
+        "operationId": "getMedia",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["images", "videos"]
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Media file.",
+            "content": {
+              "image/*": {},
+              "video/*": {}
+            }
+          },
+          "404": {
+            "description": "File not found."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a media file",
+        "operationId": "deleteMedia",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["images", "videos"]
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Media deleted successfully." },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}
