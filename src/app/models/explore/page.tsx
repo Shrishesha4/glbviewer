@@ -20,7 +20,13 @@ export default function ModelsExplorePage() {
   const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const savedKey = typeof window !== 'undefined' ? localStorage.getItem('uploadApiKey') : null;
+    if (savedKey) setApiKey(savedKey);
+  }, []);
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' });
@@ -50,14 +56,21 @@ export default function ModelsExplorePage() {
     e.preventDefault();
     if (!uploadUrl.trim()) return;
 
+    if (!apiKey.trim()) {
+      setUploadMessage({ type: 'error', text: '✗ API Key is required for uploads. Set it in the Media Explorer.' });
+      setTimeout(() => setUploadMessage(null), 5000);
+      return;
+    }
+
     setUploading(true);
     setUploadMessage(null);
 
     try {
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/models/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-Key': apiKey.trim(),
         },
         body: JSON.stringify({ url: uploadUrl }),
       });
@@ -83,6 +96,12 @@ export default function ModelsExplorePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!apiKey.trim()) {
+      setUploadMessage({ type: 'error', text: '✗ API Key is required for uploads. Set it in the Media Explorer.' });
+      setTimeout(() => setUploadMessage(null), 5000);
+      return;
+    }
+
     setUploading(true);
     setUploadMessage(null);
 
@@ -90,8 +109,11 @@ export default function ModelsExplorePage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/models/upload', {
         method: 'POST',
+        headers: {
+          'X-API-Key': apiKey.trim(),
+        },
         body: formData,
       });
 

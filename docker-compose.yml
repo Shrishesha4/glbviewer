@@ -1,28 +1,41 @@
 version: '3.8'
 
 services:
-  glb-viewer:
+  nginx:
+    image: nginx:alpine
+    container_name: glb-viewer-nginx
+    ports:
+      - "80:80"
+      - "443:443" # For HTTPS in the future
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./models:/usr/share/nginx/html/models:ro
+      - ./images:/usr/share/nginx/html/images:ro
+      - ./videos:/usr/share/nginx/html/videos:ro
+      # For Certbot/Let's Encrypt SSL certificates (optional)
+      # - ./certbot/conf:/etc/letsencrypt
+      # - ./certbot/www:/var/www/certbot
+    depends_on:
+      - glb-viewer-app
+    restart: unless-stopped
+
+  glb-viewer-app: # Renamed from 'glb-viewer' to avoid conflicts
     build:
       context: .
       dockerfile: Dockerfile
-    image: glb-viewer:latest
-    container_name: glb-viewer
-    ports:
-      - "3000:3000"
+    image: shrishesha4/glb-viewer:latest
+    container_name: glb-viewer-app
+    # Port is no longer exposed to the host, only to the internal network
+    # ports:
+    #   - "3000:3000"
     volumes:
-      # Mount a local directory to store models
-      # Use 'rw' (read-write) if you want to enable uploads
       - ./models:/app/public/models
+      - ./images:/app/public/images
+      - ./videos:/app/public/videos
     environment:
       - NODE_ENV=production
-      # Set ADMIN_PASSWORD to protect upload/management interfaces
-      # Generate with: openssl rand -base64 32
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
-      # Set UPLOAD_API_KEY to enable secure uploads from external applications
-      # Also allows bypassing admin login with API key in headers
-      # Generate with: openssl rand -base64 32
       - UPLOAD_API_KEY=${UPLOAD_API_KEY:-}
-      # Set the base URL for CDN responses (optional)
       - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
     restart: unless-stopped
     healthcheck:

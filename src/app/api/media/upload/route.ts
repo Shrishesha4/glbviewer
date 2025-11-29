@@ -142,6 +142,11 @@ export async function POST(request: NextRequest) {
       // Write file
       await writeFile(filePath, uint8Array);
       
+      // Verify file was written
+      if (!existsSync(filePath)) {
+        throw new Error('Failed to save file to disk. Check permissions.');
+      }
+      
       // Generate full URLs
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || request.headers.get('origin') || '';
       
@@ -223,6 +228,11 @@ export async function POST(request: NextRequest) {
       
       const filePath = path.join(mediaDir, finalFilename);
       await writeFile(filePath, buffer);
+      
+      // Verify file was written
+      if (!existsSync(filePath)) {
+        throw new Error('Failed to save file to disk. Check permissions.');
+      }
       
       // Generate full URLs
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || request.headers.get('origin') || '';
